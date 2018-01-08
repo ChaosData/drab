@@ -2,7 +2,7 @@
 #
 # = ./drab.rb
 #
-# Restricted Distributed Ruby: _drab_ version 0.1.0
+# Restricted Distributed Ruby: drab
 #
 # Copyright (c) 1999-2003 Masatoshi SEKI.  You can redistribute it and/or
 # modify it under the same terms as Ruby.
@@ -288,25 +288,32 @@ module DRab
           return false
         end
 
-        template.size.times do |n|
+        return (0...template.size).collect do |n|
           if template[n].is_a?(Array)
-            return match_structures(template[n], target[n])
+            hld = match_structures(template[n], target[n])
+            if !hld
+              return [false]
+            else
+              next hld
+            end
           end
 
           if template[n] === target[n]
-            return true
+            next true
           end
 
           if template[n].is_a?(String) and target[n].is_a?(String)
             if template[n] === "*"
-              return true
+              next true
             elsif template[n].start_with?("*")
-              return target[n].end_with?(template[n][1..-1])
+              next target[n].end_with?(template[n][1..-1])
             elsif template[n].end_with?("*")
-              return target[n].start_with?(template[n][0..-2])
+              next target[n].start_with?(template[n][0..-2])
+            else
+              return [false]
             end
           end
-        end
+        end.inject { |t, n| t and n }
       rescue Exception => e
         STDERR.puts e
         STDERR.puts e.backtrace
